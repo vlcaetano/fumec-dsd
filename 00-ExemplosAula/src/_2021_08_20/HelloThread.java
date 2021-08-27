@@ -12,7 +12,7 @@ public class HelloThread extends Thread {
     		try {
 				Thread.sleep(2);
 			} catch (InterruptedException e) {
-				System.out.println("Thread secundária acordou assustada");
+				System.out.println("Thread secundária acordou assustada"); //exceção lançada quando está a thread está bloqueada e recebe o comando de interrupt
 				break;
 			}
     	}
