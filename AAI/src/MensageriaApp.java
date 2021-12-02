@@ -37,7 +37,7 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 
-public class TesteApp {
+public class MensageriaApp {
 
 	public class RecebeMensagem implements MessageListener {
 
@@ -64,12 +64,33 @@ public class TesteApp {
 	}
 
 	private String mensagens = "";
+	private String codigo;
 	private JTextPane txtpnMensagens;
 	private JFrame frame;
 	private JTextField textoCodigo;
-	private String codigo;
 	private JTextField textFieldMensagem;
+	private Context jndiContext = null;
 
+	/**
+	 * Create the application.
+	 */
+	public MensageriaApp() {
+
+		// Obtenção do contexto JNDI
+		try {
+			jndiContext = new InitialContext();
+		} catch (NamingException e) {
+			System.out.println("--------> Obtenção do contexto inicial falhou: " + e);
+			System.exit(-1);
+		}
+
+		criarConexaoTopico();
+
+		criarConexaoFila();
+
+		initialize();
+	}
+	
 	/**
 	 * Launch the application.
 	 */
@@ -77,7 +98,7 @@ public class TesteApp {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					TesteApp window = new TesteApp();
+					MensageriaApp window = new MensageriaApp();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -86,30 +107,9 @@ public class TesteApp {
 		});
 	}
 
-	/**
-	 * Create the application.
-	 */
-	public TesteApp() {
-
-		// Obtenção do contexto JNDI
-		Context jndiContext = null;
-		try {
-			jndiContext = new InitialContext();
-		} catch (NamingException e) {
-			System.out.println("--------> Obtenção do contexto inicial falhou: " + e);
-			System.exit(-1);
-		}
-
-		criarConexaoTopico(jndiContext);
-
-		criarConexaoFila(jndiContext);
-
-		initialize();
-	}
-
-	private void criarConexaoFila(Context jndiContext) {
+	private void criarConexaoFila() {
 		Random r = new Random();
-		codigo = "" + (r.nextInt(9000) + 1000);
+		codigo = "" + (r.nextInt(9000) + 1000); // gerar código aleatório entre 1000 e 9999
 
 		// Obtenção da fábrica de conexões e da fila de destino
 		QueueConnectionFactory queueConnectionFactory = null;
@@ -137,7 +137,7 @@ public class TesteApp {
 		}
 	}
 
-	private void criarConexaoTopico(Context jndiContext) {
+	private void criarConexaoTopico() {
 
 		// Obtenção da fábrica de conexões e do tópico de destino
 		TopicConnectionFactory connectionFactory = null;
@@ -166,14 +166,6 @@ public class TesteApp {
 	}
 
 	private void enviaMensagemFila(String textoMensagem, String codigo) {
-		Context jndiContext = null;
-		try {
-			jndiContext = new InitialContext();
-		} catch (NamingException e) {
-			System.out.println("--------> Obtenção do contexto inicial falhou: " + e);
-			System.exit(-1);
-		}
-
 		// Obtenção da fábrica de conexões e da fila de destino
 		ConnectionFactory connectionFactory = null;
 		Destination destination = null;
@@ -219,9 +211,8 @@ public class TesteApp {
 		// Obtém referências ao QueueConnectionFactory e à fila via JNDI
 		TopicConnectionFactory connectionFactory = null;
 		Topic topic = null;
-		;
+
 		try {
-			Context jndiContext = new InitialContext();
 			connectionFactory = (TopicConnectionFactory) jndiContext.lookup("ConnectionFactory");
 			topic = (Topic) jndiContext.lookup("TesteTopic");
 		} catch (NamingException e) {
@@ -260,7 +251,7 @@ public class TesteApp {
 		frame.getContentPane().setLayout(null);
 
 		textoCodigo = new JTextField();
-		textoCodigo.setBounds(74, 247, 86, 20);
+		textoCodigo.setBounds(66, 247, 86, 20);
 		frame.getContentPane().add(textoCodigo);
 		textoCodigo.setColumns(10);
 
@@ -271,13 +262,13 @@ public class TesteApp {
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(10, 60, 530, 127);
 		frame.getContentPane().add(scrollPane);
-		
-				txtpnMensagens = new JTextPane();
-				scrollPane.setViewportView(txtpnMensagens);
-				txtpnMensagens.setEditable(false);
-				txtpnMensagens.setText(mensagens);
 
-		JLabel lblNewLabel_1 = new JLabel("Codigo: " + codigo);
+		txtpnMensagens = new JTextPane();
+		scrollPane.setViewportView(txtpnMensagens);
+		txtpnMensagens.setEditable(false);
+		txtpnMensagens.setText(mensagens);
+
+		JLabel lblNewLabel_1 = new JLabel("Código: " + codigo);
 		lblNewLabel_1.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNewLabel_1.setFont(new Font("Tahoma", Font.PLAIN, 17));
 		lblNewLabel_1.setBounds(10, 11, 530, 38);
@@ -297,7 +288,7 @@ public class TesteApp {
 			}
 		});
 		frame.getContentPane().add(btnNewButton);
-		
+
 		textFieldMensagem = new JTextField();
 		textFieldMensagem.addKeyListener(new KeyAdapter() {
 			@Override
